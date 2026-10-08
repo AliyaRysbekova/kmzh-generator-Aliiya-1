@@ -58,6 +58,7 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Сынып</label>
                     <select id="grade" class="w-full text-sm p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="" selected disabled>Таңдаңыз</option>
                         <option value="1">1-сынып</option>
                         <option value="2">2-сынып</option>
                         <option value="3">3-сынып</option>
@@ -67,7 +68,7 @@
                         <option value="7">7-сынып</option>
                         <option value="8">8-сынып</option>
                         <option value="9">9-сынып</option>
-                        <option value="10" selected>10-сынып</option>
+                        <option value="10">10-сынып</option>
                         <option value="11">11-сынып</option>
                     </select>
                 </div>
@@ -97,6 +98,7 @@
             <button onclick="generateKMZH()" id="generateBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg shadow transition flex justify-center items-center gap-2">
                 <i class="fa-solid fa-gears"></i> ҚМЖ Генерациялау
             </button>
+            <button type="button" onclick="resetForm()" class="w-full mt-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 border rounded-lg py-2 flex justify-center items-center gap-2"><i class="fa-solid fa-eraser"></i> Форманы тазалау</button>
         </section>
 
         <!-- Preview Section -->
@@ -238,17 +240,31 @@
             }
         }
 
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+        function resetForm() {
+            ['subject','unit','topic','objective'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('grade').value = '';
+            ['outSubject','outGrade','outUnit','outObjective','outLessonGoal','outCriteria'].forEach(id => document.getElementById(id).innerText = '-');
+            document.getElementById('outTopic').innerText = 'Сабақ тақырыбы көрсетілмеген';
+            document.getElementById('kmzhTableBody').innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400 italic">Сол жақтағы форманы толтырып, «ҚМЖ Генерациялау» батырмасын басыңыз.</td></tr>';
+        }
+
         async function generateKMZH() {
+            const subject = document.getElementById('subject').value.trim();
+            const grade = document.getElementById('grade').value;
+            const unit = document.getElementById('unit').value.trim();
+            const topic = document.getElementById('topic').value.trim();
+            const objective = document.getElementById('objective').value.trim();
+
+            if (!subject || !grade || !unit || !topic || !objective) {
+                alert('Барлық өрісті толтырыңыз: пән, сынып, бөлім, тақырып, оқу мақсаты.');
+                return;
+            }
             if (!apiKey) {
                 openApiModal();
                 return;
             }
-
-            const subject = document.getElementById('subject').value || 'Биология';
-            const grade = document.getElementById('grade').value;
-            const unit = document.getElementById('unit').value || 'Негізгі бөлім';
-            const topic = document.getElementById('topic').value || 'Сабақ тақырыбы';
-            const objective = document.getElementById('objective').value || 'Оқу мақсаты';
 
             const btn = document.getElementById('generateBtn');
             btn.disabled = true;
@@ -307,15 +323,17 @@
 `;
 
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }]
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: { responseMimeType: 'application/json' }
                     })
                 });
 
                 const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
                 let text = data.candidates[0].content.parts[0].text;
                 text = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
@@ -338,11 +356,11 @@
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-slate-50 border-b";
                     tr.innerHTML = `
-                        <td class="p-2 font-bold text-indigo-900 border-r bg-slate-50">${s.stage}</td>
-                        <td class="p-2 whitespace-pre-line border-r">${s.teacher}</td>
-                        <td class="p-2 whitespace-pre-line border-r">${s.student}</td>
-                        <td class="p-2 whitespace-pre-line border-r bg-amber-50/30">${s.assessment}</td>
-                        <td class="p-2 whitespace-pre-line">${s.resources}</td>
+                        <td class="p-2 font-bold text-indigo-900 border-r bg-slate-50">${esc(s.stage)}</td>
+                        <td class="p-2 whitespace-pre-line border-r">${esc(s.teacher)}</td>
+                        <td class="p-2 whitespace-pre-line border-r">${esc(s.student)}</td>
+                        <td class="p-2 whitespace-pre-line border-r bg-amber-50/30">${esc(s.assessment)}</td>
+                        <td class="p-2 whitespace-pre-line">${esc(s.resources)}</td>
                     `;
                     tbody.appendChild(tr);
                 });
