@@ -21,6 +21,7 @@
         }
         table, th, td { border: 1px solid #cbd5e1; border-collapse: collapse; }
     </style>
+<script src="https://js.puter.com/v2/"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
 
@@ -84,17 +85,7 @@
                 <textarea id="objective" rows="2" placeholder="Мысалы: 10.5.1.2 нәруыздардың біріншілік, екіншілік, үшіншілік және төртіншілік құрылымдарын сипаттау" class="w-full text-sm p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
             </div>
 
-            <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Сабақтың мақсаты</label>
-                <textarea id="lessonGoal" rows="2" placeholder="Мысалы: Оқушылар нәруыз құрылымының деңгейлерін ажыратып, қызметін түсіндіреді" class="w-full text-sm p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
-            </div>
-
-            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 space-y-1">
-                <p class="font-bold flex items-center gap-1"><i class="fa-solid fa-circle-info"></i> Бағалау ережесі:</p>
-                <p>• Әрбір дескриптор қатаң түрде <strong>1 балл</strong> береді.</p>
-                <p>• Жалпы оқушылар үшін сабақ бойынша барлығы <strong>10 дескриптор = 10 балл</strong>.</p>
-                <p>• ЕБҚ оқушыларына бөлек бейімделген 1 баллдық дескрипторлар жасалады (10 баллдық жалпы есепке қосылмайды).</p>
-            </div>
+            
 
             <button onclick="generateKMZH()" id="generateBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg shadow transition flex justify-center items-center gap-2">
                 <i class="fa-solid fa-gears"></i> ҚМЖ Генерациялау
@@ -142,40 +133,20 @@
                             <td id="outLessonGoal" class="p-2" colspan="3">-</td>
                         </tr>
                         <tr>
-                            <td class="font-bold bg-slate-50 p-2">Бағалау критерийлері:</td>
-                            <td id="outCriteria" class="p-2" colspan="3">-</td>
+                            <td class="font-bold bg-slate-50 p-2">Құндылықтар:</td>
+                            <td id="outValues" class="p-2" colspan="3">-</td>
                         </tr>
                     </tbody>
                 </table>
 
-                <!-- Indicators -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs no-print">
-                    <div class="bg-indigo-50 border border-indigo-200 p-2 rounded text-indigo-900 font-medium text-center">
-                        <i class="fa-solid fa-star text-yellow-500"></i> Жалпы оқушылар: <strong>10 балл (10 дескриптор)</strong>
-                    </div>
-                    <div class="bg-teal-50 border border-teal-200 p-2 rounded text-teal-900 font-medium text-center">
-                        <i class="fa-solid fa-hands-holding-child text-teal-600"></i> ЕБҚ оқушылары: <strong>Бөлек саналады</strong>
-                    </div>
-                    <div class="bg-purple-50 border border-purple-200 p-2 rounded text-purple-900 font-medium text-center">
-                        <i class="fa-solid fa-vial text-purple-600"></i> Тапсырма түрлері: <strong>Әртүрлі форматта</strong>
-                    </div>
-                </div>
-
                 <!-- Main Schedule Table -->
                 <div class="overflow-x-auto">
                     <table class="w-full text-xs text-left">
-                        <thead>
-                            <tr class="bg-slate-100 text-slate-700">
-                                <th class="p-2 w-1/6 border">Кезең / Уақыт</th>
-                                <th class="p-2 w-1/4 border">Мұғалім әрекеті</th>
-                                <th class="p-2 w-1/3 border">Оқушы әрекеті & Тапсырмалар</th>
-                                <th class="p-2 w-1/4 border">Бағалау & Дескрипторлар (1 деск = 1 балл)</th>
-                                <th class="p-2 w-1/6 border">Ресурстар / ЖИ</th>
-                            </tr>
-                        </thead>
+                        <thead><tr class="bg-slate-100 text-xs">
+ <th class="p-2 border" style="width:8%">Кезең / Уақыт</th><th class="p-2 border" style="width:15%">Мұғалім әрекеті</th><th class="p-2 border" style="width:30%">Оқушы әрекеті &amp; Тапсырмалар</th><th class="p-2 border" style="width:17%">Дескрипторлар (1 дескриптор = 1 балл)</th><th class="p-2 border" style="width:22%">ЕБҚ оқушыларына қолдау</th><th class="p-2 border" style="width:8%">Ресурстар</th></tr></thead>
                         <tbody id="kmzhTableBody">
                             <tr>
-                                <td colspan="5" class="p-6 text-center text-slate-400 italic">
+                                <td colspan="6" class="p-6 text-center text-slate-400 italic">
                                     Сол жақтағы форманы толтырып, «ҚМЖ Генерациялау» батырмасын басыңыз.
                                 </td>
                             </tr>
@@ -188,69 +159,113 @@
 
     <script>
         const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-        const EMPTY_ROW = '<tr><td colspan="5" class="p-6 text-center text-slate-400 italic">Сол жақтағы форманы толтырып, «ҚМЖ Генерациялау» батырмасын басыңыз.</td></tr>';
+        const nl = s => esc(s).replace(/\n/g, '<br>');
+        const EMPTY_ROW = '<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">Сол жақтағы форманы толтырып, «ҚМЖ Генерациялау» батырмасын басыңыз.</td></tr>';
+
+        const METHODS = `Жүгірмелі сөйлемдер – қабырғадағы сөйлемдерді оқып, топқа жеткізу; Үштіктер – 3 оқушы: айтушы, сұрақ қоюшы, бағалаушы; Домино – сұрақ пен жауап қималарын сәйкестендіру; Лото – қоржыннан нөмір/сұрақ алу; Бір картина – парақты айналдырып ой жазу; 3х3 – 9 торлы кестеден термин таңдап түсіндіру; Мұғалімге сұрақ – оқушы сұрақ құрастырады; Тиын – тиын лақтырып сұрақ қою; Құпиясы бар қорап – қорапшадан сұрақ алу; Блиц-сұрау – терминді айтпай түсіндіру; Бинго – 9 термин, сұрақ бойынша сызу; Карталар – сұрақ-жауап карталарын алмасу; Қарама-қарсы сұрақтар – екі топ бір-біріне сұрақ қояды; Алфавит – әріптен басталатын термин айту; Иә-жоқ – тұжырымға қарай бұрылу; 6 қалпақ – 6 рөлде талқылау; Бір минуттық эссе; Қағып ал! – анықтамаға сай термин карточкасын қағып алу; Модерация – идеяларды стикерге жазу; Стоп-кадр – видеоны тоқтатып сұрақ қою; Сөйлем қос – мәтінді кезекпен жалғастыру; Бүктелген қағаз – сұрақ жазып алмасу; Эксперт бұрышы – эксперт оқушы көмектеседі; Керемет қабырға – сұрақтарды қабырғаға жазу; Кір жаю – түсінгенін жіпке ілу; Төрт бұрыш – A,B,C,D бұрышын таңдау; Қос шеңбер – ішкі/сыртқы шеңбер жұптасу; Сигнал карталары – карта көтеріп жауап беру; RAFT – рөл, аудитория, формат, тақырып; Үш минуттық пауза – үнсіз ойланып жазу; Ойлан-Жұптас-Бөліс – жеке, жұппен, топпен`;
 
         function resetForm() {
-            ['subject','unit','topic','objective','lessonGoal'].forEach(id => document.getElementById(id).value = '');
+            ['subject','unit','topic','objective'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('grade').value = '';
-            ['outSubject','outGrade','outUnit','outObjective','outLessonGoal','outCriteria'].forEach(id => document.getElementById(id).innerText = '-');
+            ['outSubject','outGrade','outUnit','outObjective','outLessonGoal','outValues'].forEach(id => document.getElementById(id).innerText = '-');
             document.getElementById('outTopic').innerText = 'Сабақ тақырыбы көрсетілмеген';
             document.getElementById('kmzhTableBody').innerHTML = EMPTY_ROW;
         }
 
-        function generateKMZH() {
-            const v = id => document.getElementById(id).value.trim();
-            const subject = v('subject'), grade = v('grade'), unit = v('unit'),
-                  topic = v('topic'), objective = v('objective'), goal = v('lessonGoal');
-            if (!subject || !grade || !unit || !topic || !objective || !goal) {
-                alert('Барлық өрісті толтырыңыз: пән, сынып, бөлім, тақырып, оқу мақсаты, сабақ мақсаты.');
-                return;
-            }
-            const T = esc(topic);
+        function buildPrompt(p) {
+            const st = (n, x = '') => `{"stage":"${n}","teacher":"","student":"","descriptors":[],"ebk":{"support":"","task":"","descriptors":[]},"resources":""${x}}`;
+            return `Ты методист-эксперт по обновлённому содержанию образования Казахстана. Составь краткосрочный план урока (ҚМЖ) НА КАЗАХСКОМ ЯЗЫКЕ.
+Предмет: ${p.subject}. Класс: ${p.grade}. Раздел: ${p.unit}. Тема: ${p.topic}. Цель обучения: ${p.objective}.
 
-            document.getElementById('outTopic').innerText = topic;
-            document.getElementById('outSubject').innerText = subject;
-            document.getElementById('outGrade').innerText = grade + '-сынып';
-            document.getElementById('outUnit').innerText = unit;
-            document.getElementById('outObjective').innerText = objective;
-            document.getElementById('outLessonGoal').innerText = goal;
-            document.getElementById('outCriteria').innerText =
-                'Білім алушы: «' + topic + '» тақырыбы бойынша негізгі ұғымдарды анықтайды; ұғымдар арасындағы байланысты сәйкестендіреді; деректерді талдап, қорытынды жасайды; өз ойын дәлелдейді.';
+ТРЕБОВАНИЯ
+1. lessonGoal: цель урока, логично вытекающая из цели обучения (1–2 предложения).
+2. values: 2–3 ценности (Мәңгілік Ел / стандарт РК) и конкретно: в каком задании и как они формируются.
+3. Урок 45 мин: басы 0–7, ортасы 7–32 (25 мин), соңы 32–45.
+4. Задания пиши ПОЛНОСТЬЮ, с реальным содержанием по теме (конкретные утверждения, пары для сопоставления, предложения с пропусками, данные/таблица/описание графика или рисунка, вопросы), чтобы учитель мог сразу раздать. Форматы разные: Иә/Жоқ, сәйкестендіру, бос орынды толтыру, деректерді/кестені/суретті интерпретациялау, тест (A–D), ашық сұрақ. Уровень заданий соответствует глаголу цели обучения.
+5. Методы бери ТОЛЬКО из списка ниже; пиши «Әдіс: <название>» и кратко шаги проведения. Басы: короткий метод-вход. Ортасы: 1 метод + 2 задания (если тема сложная: 2 метода с заданиями). Соңы: закрепляющее задание + рефлексия (поле reflection: вопросы или приём).
+6. Дескрипторы для всех учеников: ровно 10 в сумме, каждый 1 балл: басы 2, ортасы 6, соңы 2. Форма «Білім алушы …», проверяемое действие, привязанное к заданию.
+7. ЕБҚ (особые образовательные потребности): для каждого этапа ebk.support (виды поддержки), ebk.task (упрощённое задание с реальным содержанием), ebk.descriptors (1–2 упрощённых дескриптора, по 1 баллу).
+8. Критерии оценивания не нужны. Служебных пометок про подсчёт баллов не пиши.
+СПИСОК МЕТОДОВ: ${METHODS}
 
-            const stages = [
-                { stage: 'Сабақтың басы<br>(0–10 мин)',
-                  teacher: `Сәлемдесу, ынтымақтастық атмосферасын қалыптастыру.\n«Миға шабуыл»: «${T}» тақырыбына қатысты қызықтыратын сұрақ қояды.\nСабақтың мақсаты мен бағалау критерийлерін таныстырады.`,
-                  student: `Иә/Жоқ (ақиқат/жалған) тапсырмасы: «${T}» тақырыбы бойынша берілген тұжырымдардың ақиқат не жалған екенін анықтайды.\nЖұппен талқылайды.`,
-                  assessment: `1. Тұжырымның ақиқат/жалғандығын дұрыс анықтайды — 1 балл\n2. Таңдауын қысқаша түсіндіреді — 1 балл\n\nЕБҚ: Дайын карточкалар арқылы 3 тұжырымның жауабын таңдайды — 1 балл (10 баллға қосылмайды)`,
-                  resources: 'Тұжырымдар тізімі, слайд, жұмыс парағы' },
-                { stage: 'Сабақтың ортасы<br>(10–35 мин)',
-                  teacher: `Жаңа материалды түсіндіреді, нақты мысалдар келтіреді.\nТапсырмаларды ұйымдастырады, жұмысты бақылап, кері байланыс береді.`,
-                  student: `А) Сәйкестендіру: ұғымдарды анықтамаларымен сәйкестендіреді.\nБ) Бос орынды толтыру: «${T}» бойынша мәтіндегі жетіспейтін сөздерді қояды.\nВ) Интерпретациялау: берілген кестені / графикті / суретті талдап, қорытынды жасайды.`,
-                  assessment: `А) Ұғымдарды анықтамасымен дұрыс сәйкестендіреді — 1 балл\nА) Кемінде 4 жұпты қателіксіз табады — 1 балл\nБ) Бос орындарды дұрыс толтырады — 1 балл\nБ) Терминдерді орынды қолданады — 1 балл\nВ) Деректердегі негізгі тенденцияны анықтайды — 1 балл\nВ) Дұрыс қорытынды жасайды — 1 балл\n\nЕБҚ: Суретті/сызбаны қолдана отырып, 3 ұғымды сәйкестендіреді — 1 балл (10 баллға қосылмайды)`,
-                  resources: 'Оқулық, жұмыс парағы, кесте/график/сурет, интерактивті тақта' },
-                { stage: 'Сабақтың соңы<br>(35–45 мин)',
-                  teacher: `Сабақты қорытындылайды. Рефлексия өткізеді.\nҮй тапсырмасын түсіндіреді.`,
-                  student: `Ашық/логикалық сұраққа жазбаша жауап береді: «${T}» неге маңызды? Өз жауабын мысалмен дәлелдейді.\nРефлексия: «Не білдім? Не қиын болды?»`,
-                  assessment: `1. Сұраққа толық әрі логикалық жауап береді — 1 балл\n2. Жауабын мысалмен дәлелдейді — 1 балл\n\nЕБҚ: Дайын сөйлем үлгісін қолданып, 1–2 сөйлеммен жауап береді — 1 балл (10 баллға қосылмайды)\n\nБарлығы: 10 балл`,
-                  resources: 'Рефлексия парағы, стикерлер' }
-            ];
-
-            const tbody = document.getElementById('kmzhTableBody');
-            tbody.innerHTML = '';
-            stages.forEach(s => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-50 border-b';
-                tr.innerHTML = `
-                    <td class="p-2 font-bold text-indigo-900 border-r bg-slate-50">${s.stage}</td>
-                    <td class="p-2 whitespace-pre-line border-r" contenteditable="true">${s.teacher.replace(/\\n/g,'\n')}</td>
-                    <td class="p-2 whitespace-pre-line border-r" contenteditable="true">${s.student.replace(/\\n/g,'\n')}</td>
-                    <td class="p-2 whitespace-pre-line border-r bg-amber-50/30" contenteditable="true">${s.assessment.replace(/\\n/g,'\n')}</td>
-                    <td class="p-2 whitespace-pre-line" contenteditable="true">${s.resources}</td>`;
-                tbody.appendChild(tr);
-            });
+Верни ТОЛЬКО валидный JSON без markdown; переносы строк внутри строк только как \\n:
+{"lessonGoal":"","values":"","stages":[${st('Сабақтың басы (0–7 мин)')},${st('Сабақтың ортасы (7–32 мин)')},${st('Сабақтың соңы (32–45 мин)', ',"reflection":""')}]}`;
         }
 
-        // Export Document to DOCX
+        async function askAI(prompt) {
+            let last;
+            for (const model of ['google/gemini-2.5-flash', 'gpt-5-mini', null]) {
+                try {
+                    const r = await puter.ai.chat(prompt, model ? { model } : {});
+                    const c = r?.message?.content;
+                    return typeof r === 'string' ? r : Array.isArray(c) ? c.map(x => x.text || '').join('') : (c ?? r?.text ?? String(r));
+                } catch (e) { last = e; }
+            }
+            throw last;
+        }
+
+        const countDesc = d => d.stages.reduce((a, s) => a + (s.descriptors || []).length, 0);
+
+        function render(d) {
+            document.getElementById('outLessonGoal').innerText = d.lessonGoal || '-';
+            document.getElementById('outValues').innerText = d.values || '-';
+            const tb = document.getElementById('kmzhTableBody');
+            tb.innerHTML = '';
+            let n = 0;
+            d.stages.forEach(s => {
+                const e = s.ebk || {};
+                const ds = (s.descriptors || []).map(x => `${++n}. ${x} — 1 балл`).join('\n');
+                const eb = `Қолдау түрлері: ${e.support || ''}\n\nЖеңілдетілген тапсырма: ${e.task || ''}\n\nДескрипторлар:\n` + (e.descriptors || []).map(x => `• ${x} — 1 балл`).join('\n');
+                const stu = (s.student || '') + (s.reflection ? `\n\nРефлексия: ${s.reflection}` : '');
+                const c = (t, x = '') => `<td class="p-2 align-top border-r ${x}" contenteditable="true">${nl(t)}</td>`;
+                const tr = document.createElement('tr');
+                tr.className = 'border-b';
+                tr.innerHTML = `<td class="p-2 align-top font-bold text-indigo-900 border-r bg-slate-50">${esc(s.stage)}</td>` + c(s.teacher) + c(stu) + c(ds, 'bg-amber-50/30') + c(eb, 'bg-emerald-50/30') + c(s.resources);
+                tb.appendChild(tr);
+            });
+            const tot = document.createElement('tr');
+            tot.innerHTML = `<td colspan="6" class="p-2 text-right font-bold">Барлығы: ${n} балл</td>`;
+            tb.appendChild(tot);
+            if (n !== 10) alert(`Дескрипторлар саны ${n} болып шықты (10 болуы керек). Кестеде ұяшықты өзіңіз түзетіңіз.`);
+        }
+
+        async function generateKMZH() {
+            const v = id => document.getElementById(id).value.trim();
+            const p = { subject: v('subject'), grade: v('grade'), unit: v('unit'), topic: v('topic'), objective: v('objective') };
+            if (Object.values(p).some(x => !x)) {
+                alert('Барлық өрісті толтырыңыз: пән, сынып, бөлім, тақырып, оқу мақсаты.');
+                return;
+            }
+            const btn = document.getElementById('generateBtn');
+            const old = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Дайындалуда (30–60 сек)...';
+            try {
+                let d, err;
+                for (let i = 0; i < 3; i++) {
+                    try {
+                        const t = await askAI(buildPrompt(p));
+                        d = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1));
+                        if (countDesc(d) === 10) break;
+                    } catch (e) { err = e; }
+                }
+                if (!d) throw err;
+                document.getElementById('outTopic').innerText = p.topic;
+                document.getElementById('outSubject').innerText = p.subject;
+                document.getElementById('outGrade').innerText = p.grade + '-сынып';
+                document.getElementById('outUnit').innerText = p.unit;
+                document.getElementById('outObjective').innerText = p.objective;
+                render(d);
+            } catch (e) {
+                alert('Қате шықты: ' + (e?.message || e?.error?.message || JSON.stringify(e)));
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = old;
+            }
+        }
+
+        
+// Export Document to DOCX
         function exportToWord() {
             const topic = document.getElementById('outTopic').innerText || 'КМЖ';
             const content = document.getElementById('kmzhContainer').innerHTML;
@@ -275,7 +290,7 @@
                 </html>
             `;
 
-            const converted = htmlDocx.asBlob(htmlDocument);
+            const converted = htmlDocx.asBlob(htmlDocument, {orientation: "landscape"});
             saveAs(converted, `${topic}_ҚМЖ.docx`);
         }
     </script>
