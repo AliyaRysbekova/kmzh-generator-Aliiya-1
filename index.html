@@ -21,7 +21,6 @@
         }
         table, th, td { border: 1px solid #cbd5e1; border-collapse: collapse; }
     </style>
-<script src="https://js.puter.com/v2/"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
 
@@ -157,7 +156,25 @@
         </section>
     </main>
 
-    <script>
+    <div id="aiModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl p-5 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <h3 class="font-bold text-lg mb-1">ҚМЖ жасау: 3 қадам</h3>
+    <p class="text-sm text-slate-600 mb-3">1) Промптты көшіріңіз. 2) Тегін ЖИ-чатқа қойып, жауабын алыңыз:
+      <a class="text-indigo-600 underline" href="https://gemini.google.com" target="_blank">Gemini</a>,
+      <a class="text-indigo-600 underline" href="https://chatgpt.com" target="_blank">ChatGPT</a>,
+      <a class="text-indigo-600 underline" href="https://claude.ai" target="_blank">Claude</a>.
+      3) Жауапты төмендегі өріске қойыңыз.</p>
+    <textarea id="aiPrompt" readonly rows="5" class="w-full text-xs p-2 border rounded-lg mb-2 bg-slate-50"></textarea>
+    <button id="copyBtn" onclick="copyPrompt()" class="mb-3 bg-indigo-600 text-white text-sm font-semibold px-4 py-2 rounded-lg">Промптты көшіру</button>
+    <textarea id="aiAnswer" rows="6" placeholder="ЖИ жауабын осында қойыңыз..." class="w-full text-xs p-2 border rounded-lg mb-3"></textarea>
+    <div class="flex justify-end gap-2">
+      <button onclick="closeAi()" class="text-sm px-4 py-2 rounded-lg border">Жабу</button>
+      <button onclick="buildFromAnswer()" class="text-sm font-semibold px-4 py-2 rounded-lg bg-emerald-600 text-white">Жоспарды құру</button>
+    </div>
+  </div>
+</div>
+
+<script>
         const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         const nl = s => esc(s).replace(/\n/g, '<br>');
         const EMPTY_ROW = '<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">Сол жақтағы форманы толтырып, «ҚМЖ Генерациялау» батырмасын басыңыз.</td></tr>';
@@ -192,20 +209,6 @@
 {"lessonGoal":"","values":"","stages":[${st('Сабақтың басы (0–7 мин)')},${st('Сабақтың ортасы (7–32 мин)')},${st('Сабақтың соңы (32–45 мин)', ',"reflection":""')}]}`;
         }
 
-        async function askAI(prompt) {
-            let last;
-            for (const model of ['google/gemini-2.5-flash', 'gpt-5-mini', null]) {
-                try {
-                    const r = await puter.ai.chat(prompt, model ? { model } : {});
-                    const c = r?.message?.content;
-                    return typeof r === 'string' ? r : Array.isArray(c) ? c.map(x => x.text || '').join('') : (c ?? r?.text ?? String(r));
-                } catch (e) { last = e; }
-            }
-            throw last;
-        }
-
-        const countDesc = d => d.stages.reduce((a, s) => a + (s.descriptors || []).length, 0);
-
         function render(d) {
             document.getElementById('outLessonGoal').innerText = d.lessonGoal || '-';
             document.getElementById('outValues').innerText = d.values || '-';
@@ -229,43 +232,49 @@
             if (n !== 10) alert(`Дескрипторлар саны ${n} болып шықты (10 болуы керек). Кестеде ұяшықты өзіңіз түзетіңіз.`);
         }
 
-        async function generateKMZH() {
+        function openAi() { document.getElementById('aiModal').classList.remove('hidden'); }
+        function closeAi() { document.getElementById('aiModal').classList.add('hidden'); }
+        let curP = null;
+
+        function generateKMZH() {
             const v = id => document.getElementById(id).value.trim();
             const p = { subject: v('subject'), grade: v('grade'), unit: v('unit'), topic: v('topic'), objective: v('objective') };
             if (Object.values(p).some(x => !x)) {
                 alert('Барлық өрісті толтырыңыз: пән, сынып, бөлім, тақырып, оқу мақсаты.');
                 return;
             }
-            const btn = document.getElementById('generateBtn');
-            const old = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Дайындалуда (30–60 сек)...';
+            curP = p;
+            document.getElementById('aiPrompt').value = buildPrompt(p);
+            document.getElementById('aiAnswer').value = '';
+            openAi();
+        }
+
+        async function copyPrompt() {
+            const t = document.getElementById('aiPrompt');
+            try { await navigator.clipboard.writeText(t.value); } catch (e) { t.select(); document.execCommand('copy'); }
+            const b = document.getElementById('copyBtn');
+            b.innerText = 'Көшірілді ✓';
+            setTimeout(() => b.innerText = 'Промптты көшіру', 2000);
+        }
+
+        function buildFromAnswer() {
+            const t = document.getElementById('aiAnswer').value;
             try {
-                let d, err;
-                for (let i = 0; i < 3; i++) {
-                    try {
-                        const t = await askAI(buildPrompt(p));
-                        d = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1));
-                        if (countDesc(d) === 10) break;
-                    } catch (e) { err = e; }
-                }
-                if (!d) throw err;
-                document.getElementById('outTopic').innerText = p.topic;
-                document.getElementById('outSubject').innerText = p.subject;
-                document.getElementById('outGrade').innerText = p.grade + '-сынып';
-                document.getElementById('outUnit').innerText = p.unit;
-                document.getElementById('outObjective').innerText = p.objective;
+                const d = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1));
+                if (!Array.isArray(d.stages)) throw new Error('no stages');
+                document.getElementById('outTopic').innerText = curP.topic;
+                document.getElementById('outSubject').innerText = curP.subject;
+                document.getElementById('outGrade').innerText = curP.grade + '-сынып';
+                document.getElementById('outUnit').innerText = curP.unit;
+                document.getElementById('outObjective').innerText = curP.objective;
+                closeAi();
                 render(d);
             } catch (e) {
-                alert('Қате шықты: ' + (e?.message || e?.error?.message || JSON.stringify(e)));
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = old;
+                alert('Жауап дұрыс форматта емес. ЖИ-ге «Тек JSON қайтар, басқа мәтін жазба» деп қайта сұраңыз да, жауапты толық қойыңыз.');
             }
         }
 
-        
-// Export Document to DOCX
+        // Export Document to DOCX
         function exportToWord() {
             const topic = document.getElementById('outTopic').innerText || 'КМЖ';
             const content = document.getElementById('kmzhContainer').innerHTML;
